@@ -14,17 +14,19 @@ interface weatherType {
   conditions: string;
 }
 
-let weatherList: weatherType[] = [];
+//let weatherList: weatherType[] = [];
 let savedWeatherList: weatherType[] = [];
-let weatherId: number = 0;
+//let paginatedSavedWeatherList: Array<Object> = [];
+//let weatherId: number = 0;
+let savedWeatherId: number;
 let currentPageGlobal: number = 1;
 let itemsPerPageGlobal: number = 3;
 
-//const app = document.querySelector<HTMLDivElement>("#app")!; //Ka sauktukas reiskia? Ignores null, undefined error
+const testPaginationButton: HTMLElement =
+  document.getElementById("test-pages")!;
 const searchButton: HTMLElement = document.getElementById("search-button")!;
 let weatherListDiv: HTMLElement = document.getElementById("weather-list")!;
 const testArrayButton: HTMLElement = document.getElementById("test-array")!;
-const testPagination: HTMLElement = document.getElementById("test-pages")!;
 const prevPageButton: HTMLElement = document.getElementById("prev-page")!;
 const nextPageButton: HTMLElement = document.getElementById("next-page")!;
 const searchInput = <HTMLInputElement>document.getElementById("search-input");
@@ -49,11 +51,18 @@ async function getWeatherData(): Promise<void> {
       const sunset: Object = new Date(sunsetUnix * 1000);
 
       savedWeatherList =
-        savedWeatherList.length > 0 ? savedWeatherList : weatherList;
+        localStorage.getItem("weather array") === null
+          ? []
+          : JSON.parse(localStorage.getItem("weather array") || "[]");
+
+      savedWeatherId =
+        localStorage.getItem("weather id") === null
+          ? 0
+          : Number(localStorage.getItem("weather id"));
 
       //Add data from API to local array
       savedWeatherList.push({
-        id: (weatherId = weatherId + 1),
+        id: (savedWeatherId = savedWeatherId + 1),
         city: data.name,
         country: data.sys.country,
         temp: data.main.temp,
@@ -64,6 +73,8 @@ async function getWeatherData(): Promise<void> {
         sunset: sunset.toString(),
         conditions: data.weather[0].icon,
       });
+      saveArrayToStorage();
+      saveWeatherId();
       constructList();
     } catch (error: any) {
       if (error.response) {
@@ -78,14 +89,25 @@ async function getWeatherData(): Promise<void> {
   }
 }
 
-//Save to local storage
-function saveToStorage() {
+function saveWeatherId() {
+  localStorage.setItem("weather id", String(savedWeatherId));
+}
+
+//Save view to local storage
+function saveViewToStorage() {
   localStorage.setItem("weather data", weatherListDiv.innerHTML);
-  localStorage.setItem("weather array", JSON.stringify(weatherList));
+}
+
+//Save array to local storage
+function saveArrayToStorage() {
+  localStorage.setItem("weather array", JSON.stringify(savedWeatherList));
+}
+
+function getArrayData() {
+  savedWeatherList = JSON.parse(localStorage.getItem("weather array") || "[]");
 }
 
 function renderList() {
-  savedWeatherList = JSON.parse(localStorage.getItem("weather array") || "[]");
   weatherListDiv.innerHTML = localStorage.getItem("weather data") || "";
 }
 
@@ -96,7 +118,7 @@ function constructList() {
   const deleteButton: HTMLElement = document.createElement("button");
   const img: HTMLImageElement = document.createElement("img");
 
-  weatherList.forEach((item) => {
+  savedWeatherList.forEach((item) => {
     div.setAttribute("id", `item-` + item.id);
     div.classList.add("list-item");
     weatherListDiv.appendChild(div);
@@ -129,8 +151,9 @@ function constructList() {
     weatherItemDiv.appendChild(img);
     weatherItemDiv.appendChild(p);
     weatherItemDiv.appendChild(deleteButton);
-    saveToStorage();
   });
+  saveViewToStorage();
+  //paginate(currentPageGlobal, itemsPerPageGlobal);
 }
 
 //What type is EVENT?
@@ -139,12 +162,12 @@ function updateValue(e: any): void {
 }
 
 function paginate(currentPage: number, itemsPerPage: number) {
-  for (let i = 0; i < weatherList.length; i++) {
+  for (let i = 0; i < savedWeatherList.length; i++) {
     if (
       i >= (currentPage - 1) * itemsPerPage &&
       i < currentPage * itemsPerPage
     ) {
-      console.log(weatherList[i]);
+      console.log(savedWeatherList[i]);
     }
   }
 }
@@ -162,30 +185,35 @@ function nextPage() {
 //Remove item from the array, but not from view
 function deleteItem(clickedID: number): void {
   console.log("Item with the id of: " + clickedID + " was clicked!");
-  weatherList = weatherList.filter((item) => {
+  savedWeatherList = savedWeatherList.filter((item) => {
     return item.id !== clickedID;
   });
+  saveArrayToStorage();
 }
 
 //Event listeners
 searchInput.addEventListener("change", updateValue);
 searchButton.addEventListener("click", getWeatherData);
 testArrayButton.addEventListener("click", (): void => {
-  console.log(JSON.stringify(weatherList, undefined, 2));
+  console.log(JSON.stringify(savedWeatherList, undefined, 2));
 });
 prevPageButton.addEventListener("click", prevPage);
 nextPageButton.addEventListener("click", nextPage);
-testPagination.addEventListener("click", (): void => {
+testPaginationButton.addEventListener("click", () => {
   paginate(currentPageGlobal, itemsPerPageGlobal);
 });
+
 //Remove list item Event listener from view only
 weatherListDiv.addEventListener("click", function (e) {
   let element = e.target as HTMLElement;
   if (element.tagName === "BUTTON") {
     element.parentElement!.remove();
-    saveToStorage();
+    saveViewToStorage();
+    saveArrayToStorage();
   }
 });
 
+//Get saved weather data from local storage
+getArrayData();
 //Call list render function
 renderList();
