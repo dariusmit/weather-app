@@ -1,0 +1,13 @@
+DONE:
+1. Installed plain typescript project with Vite
+2. Installed Axios
+3. Installed Bulma
+4. Moved script from body to head. Should it be moved to body but header tag instead?
+5. Connected to API and got some data
+6. Added basic error handling
+7. Added input field city value grab and return data from api by that city name
+8. According to city name searched app created an array and displays it
+
+
+WOULD BE NICE TO IMPLEMENT:
+1. ENV variable to hide api key.
