@@ -21,7 +21,10 @@ let searchInputValue: string = "";
 
 window.onload = () => {
   renderList();
+  getCachedListView();
   getArrayData();
+  isValueFound = false;
+  localStorage.setItem("isFoundValue", String(isValueFound));
 };
 
 async function getWeatherData(): Promise<void> {
@@ -79,9 +82,11 @@ function constructList() {
   let deleteButton: HTMLElement = document.createElement("button");
   let img: HTMLImageElement = document.createElement("img");
   savedWeatherArray.forEach((item) => {
-    div.setAttribute("id", `item-` + item.id);
+    div.setAttribute("id", `item-` + savedWeatherArray.length);
     weatherListDiv.appendChild(div);
-    let weatherItemDiv = document.querySelector(`#item-${item.id}`)!;
+    let weatherItemDiv = document.querySelector(
+      `#item-${savedWeatherArray.length}`
+    )!;
     img.src = `${item.conditions}` + `.png`;
     p.textContent =
       "City: " +
@@ -174,11 +179,13 @@ searchAlreadyAddedInput.addEventListener(
 
 searchAlreadyAddedButton.addEventListener("click", buildArrayFromAlreadyAdded);
 
-let foundValuesArray: Array<{}> = [];
-let foundValueObject: Object = {};
+let foundValuesArray: any = [];
+let foundValueObject: any = {};
 
 function buildArrayFromAlreadyAdded() {
   console.log("Search input value: " + searchAlreadyAddedInputValue);
+  getFoundValue();
+  getCachedListArray();
   for (let i = 0; i < savedWeatherArray.length; i++) {
     if (
       savedWeatherArray[i].city.toLowerCase() ==
@@ -197,18 +204,22 @@ function buildArrayFromAlreadyAdded() {
           );
           foundValueObject = savedWeatherArray[i];
           foundValuesArray.push(foundValueObject);
-          for (let i = 0; i < savedWeatherArray.length; i++) {
-            savedWeatherArray[i].id = i;
+          for (let i = 0; i < foundValuesArray.length; i++) {
+            foundValuesArray[i].id = i;
           }
+          saveCachedListArray();
+          saveFoundValue();
           displayForecasts();
         }
       } else {
         console.log("Object is null so we can just assign found value to it");
         foundValueObject = savedWeatherArray[i];
         foundValuesArray.push(foundValueObject);
-        for (let i = 0; i < savedWeatherArray.length; i++) {
-          savedWeatherArray[i].id = i;
+        for (let i = 0; i < foundValuesArray.length; i++) {
+          foundValuesArray[i].id = i;
         }
+        saveCachedListArray();
+        saveFoundValue();
         displayForecasts();
       }
     }
@@ -216,19 +227,23 @@ function buildArrayFromAlreadyAdded() {
   console.log("Whole array:" + JSON.stringify(foundValuesArray, undefined, 2));
 }
 
+let isValueFound = localStorage.getItem("isFoundValue") || false;
+
 function doesValueExist(): boolean {
-  let isValueFound = false;
-  foundValuesArray.forEach((item) => {
-    //Typescript error because of incorrect type? Property does exist when code runs. Vite won't build with this error probably...
+  isValueFound = false;
+  foundValuesArray.forEach((item: any) => {
     if (item.city.toLowerCase() == searchAlreadyAddedInputValue.toLowerCase()) {
       console.log("doesValueExist function output: " + true);
       isValueFound = true;
+      localStorage.setItem("isFoundValue", String(isValueFound));
     }
   });
   if (isValueFound) {
     return true;
   } else {
     console.log("doesValueExist function output: " + false);
+    isValueFound = false;
+    localStorage.setItem("isFoundValue", String(isValueFound));
     return false;
   }
 }
@@ -242,10 +257,12 @@ function displayForecasts() {
   let p: HTMLParagraphElement = document.createElement("p");
   let deleteButton: HTMLElement = document.createElement("button");
   let img: HTMLImageElement = document.createElement("img");
-  foundValuesArray.forEach((item) => {
-    div.setAttribute("id", `item-cached-` + item.id);
+  foundValuesArray.forEach((item: any) => {
+    div.setAttribute("id", `item-cached-` + foundValuesArray.length);
     weatherListAlreadyAddedDiv.appendChild(div);
-    let weatherItemDiv = document.querySelector(`#item-cached-${item.id}`)!;
+    let weatherItemDiv = document.querySelector(
+      `#item-cached-${foundValuesArray.length}`
+    )!;
     img.src = `${item.conditions}` + `.png`;
     p.textContent =
       "City: " +
@@ -270,5 +287,63 @@ function displayForecasts() {
     weatherItemDiv.appendChild(p);
     weatherItemDiv.appendChild(deleteButton);
   });
+  saveCachedListView();
+}
+
+function saveCachedListArray() {
+  localStorage.setItem("cached list array", JSON.stringify(foundValuesArray));
+}
+
+function saveCachedListView() {
+  localStorage.setItem(
+    "cached list view",
+    weatherListAlreadyAddedDiv.innerHTML
+  );
+}
+
+function saveFoundValue() {
+  localStorage.setItem("found value object", JSON.stringify(foundValueObject));
+}
+
+function getCachedListArray() {
+  foundValuesArray = JSON.parse(
+    localStorage.getItem("cached list array") || "[]"
+  );
+}
+
+function getCachedListView() {
+  weatherListAlreadyAddedDiv.innerHTML =
+    localStorage.getItem("cached list view") || "";
+}
+
+function getFoundValue() {
+  foundValueObject = JSON.parse(
+    localStorage.getItem("found value object") || "{}"
+  );
+}
+//------------------------------------
+weatherListAlreadyAddedDiv.addEventListener("click", function (e) {
+  let element = e.target as HTMLElement;
+  if (element.tagName === "BUTTON") {
+    console.log("Clicked element.id:" + element.id);
+    element.parentElement!.remove();
+    deleteCachedListItem(Number(element.id));
+  }
+});
+
+function deleteCachedListItem(clickID: number): void {
+  console.log("Item with the id of: " + clickID + " was deleted!");
+  foundValuesArray = foundValuesArray.filter((item: any) => {
+    return item.id !== clickID;
+  });
+  //Reindex array
+  for (let i = 0; i < foundValuesArray.length; i++) {
+    foundValuesArray[i].id = i;
+  }
+  weatherListAlreadyAddedDiv.innerHTML = "";
+  saveCachedListArray();
+  saveCachedListView();
+  saveFoundValue();
+  buildArrayFromAlreadyAdded();
 }
 //=========================================================================================================
