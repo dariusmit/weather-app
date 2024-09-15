@@ -59,7 +59,6 @@ async function getWeatherData(): Promise<void> {
       const sunrise: Object = new Date(sunriseUnix * 1000);
       const sunset: Object = new Date(sunsetUnix * 1000);
       getArrayData();
-      //Cia reiketu ideti checka if its not already added value
       if (savedWeatherArray.length === 0) {
         console.log("Array is empty so we can just add the value");
         savedWeatherArray.push({
@@ -122,11 +121,12 @@ async function getWeatherData(): Promise<void> {
 //Display data from the API. 1st list
 function displayForecasts1stList() {
   getArrayData();
-  let div: HTMLElement = document.createElement("div");
-  let p: HTMLParagraphElement = document.createElement("p");
-  let deleteButton: HTMLElement = document.createElement("button");
-  let img: HTMLImageElement = document.createElement("img");
+  weatherListDiv.innerHTML = "";
   savedWeatherArray.forEach((item: any) => {
+    let div: HTMLElement = document.createElement("div");
+    let p: HTMLParagraphElement = document.createElement("p");
+    let deleteButton: HTMLElement = document.createElement("button");
+    let img: HTMLImageElement = document.createElement("img");
     div.setAttribute("id", `weather-item-` + item.id);
     weatherListDiv.appendChild(div);
     let weatherItemDiv = document.querySelector(`#weather-item-${item.id}`)!;
@@ -148,7 +148,9 @@ function displayForecasts1stList() {
       item.sunrise +
       " Sunset: " +
       item.sunset;
+    p.classList.add("paragraph");
     deleteButton.innerHTML = "Delete";
+    deleteButton.classList.add("button", "is-danger");
     deleteButton.setAttribute("id", `weather-button-` + item.id);
     weatherItemDiv.appendChild(img);
     weatherItemDiv.appendChild(p);
@@ -178,7 +180,6 @@ function deleteItem(clickID: number): void {
   weatherListDiv.innerHTML = "";
   saveView();
   saveArrayToStorage();
-  //This function builds list and calls render function without connecting to API
   displayForecasts1stList();
 }
 
@@ -296,6 +297,13 @@ function buildArrayFromAlreadyAdded() {
           displayForecasts();
         }
       }
+      /*
+      //This does not seem to work correctly
+      else {
+        alert("Forecast does not exist in already added forecasts list");
+        break;
+      }
+      */
     }
     console.log(
       "Whole array:" + JSON.stringify(foundValuesArray, undefined, 2)
@@ -306,18 +314,16 @@ function buildArrayFromAlreadyAdded() {
 //Display data. 2nd list
 function displayForecasts() {
   getCachedListArray();
-  let div: HTMLElement = document.createElement("div");
-  let p: HTMLParagraphElement = document.createElement("p");
-  let deleteButton: HTMLElement = document.createElement("button");
-  let img: HTMLImageElement = document.createElement("img");
+  weatherListAlreadyAddedDiv.innerHTML = "";
   foundValuesArray.forEach((item: any) => {
-    div.setAttribute(
-      "id",
-      `weather-item-cached-` + (foundValuesArray.length - 1)
-    );
+    let div: HTMLElement = document.createElement("div");
+    let p: HTMLParagraphElement = document.createElement("p");
+    let deleteButton: HTMLElement = document.createElement("button");
+    let img: HTMLImageElement = document.createElement("img");
+    div.setAttribute("id", `weather-item-cached-` + item.id);
     weatherListAlreadyAddedDiv.appendChild(div);
     let weatherItemDiv = document.querySelector(
-      `#weather-item-cached-${foundValuesArray.length - 1}`
+      `#weather-item-cached-${item.id}`
     )!;
     img.src = `${item.conditions}` + `.png`;
     p.textContent =
@@ -337,11 +343,10 @@ function displayForecasts() {
       item.sunrise +
       " Sunset: " +
       item.sunset;
+    p.classList.add("paragraph");
     deleteButton.innerHTML = "Delete";
-    deleteButton.setAttribute(
-      "id",
-      `weather-button-cached` + (foundValuesArray.length - 1)
-    );
+    deleteButton.classList.add("button", "is-danger");
+    deleteButton.setAttribute("id", `weather-button-cached` + item.id);
     weatherItemDiv.appendChild(img);
     weatherItemDiv.appendChild(p);
     weatherItemDiv.appendChild(deleteButton);
@@ -355,7 +360,6 @@ weatherListAlreadyAddedDiv.addEventListener("click", function (e) {
   let element = e.target as HTMLElement;
   if (element.tagName === "BUTTON") {
     console.log("Clicked element.id:" + element.id.replace(/\D/g, ""));
-    //element.parentElement!.remove();
     deleteCachedListItem(Number(element.id.replace(/\D/g, "")));
   }
 });
@@ -371,7 +375,7 @@ function deleteCachedListItem(clickID: number): void {
   weatherListAlreadyAddedDiv.innerHTML = "";
   saveCachedListArray();
   saveCachedListView();
-  buildArrayFromAlreadyAdded();
+  displayForecasts();
 }
 
 //Does value exist. 2nd list
@@ -431,4 +435,102 @@ function getFoundValue() {
   foundValueObject = JSON.parse(
     localStorage.getItem("found value object") || "{}"
   );
+}
+//===================================================================================================================================================================================
+//Pagination testing
+//===================================================================================================================================================================================
+let currentPageGlobal = 1;
+let itemsPerPageGlobal = 3;
+let paginatedArray: Array<Object> = [];
+const paginatedContainer: HTMLElement = document.getElementById(
+  "paginated-container"
+)!;
+const pageDownButton: HTMLElement = document.getElementById("prev-page")!;
+const pageUpButton: HTMLElement = document.getElementById("next-page")!;
+const testPaginatedArrayButton: HTMLElement = document.getElementById(
+  "test-paginated-array"
+)!;
+const callPaginationFunctionButton: HTMLElement =
+  document.getElementById("call-pagination")!;
+
+pageUpButton.addEventListener("click", nextPage);
+pageDownButton.addEventListener("click", prevPage);
+testPaginatedArrayButton.addEventListener("click", testPaginatedArray);
+callPaginationFunctionButton.addEventListener("click", () =>
+  createPaginatedArray(currentPageGlobal, itemsPerPageGlobal)
+);
+
+function createPaginatedArray(currentPage: number, itemsPerPage: number) {
+  console.log("Pagination function was called. Now press test paginated array");
+  paginatedArray = [];
+  for (let i = 0; i < savedWeatherArray.length; i++) {
+    if (
+      i >= (currentPage - 1) * itemsPerPage &&
+      i < currentPage * itemsPerPage
+    ) {
+      paginatedArray.push(savedWeatherArray[i]);
+    }
+  }
+  //Create and render
+  createPaginatedHTMLstructure();
+}
+
+function testPaginatedArray() {
+  console.log("Current page: ");
+  console.log(currentPageGlobal);
+  console.log("Page limit: ");
+  console.log(itemsPerPageGlobal);
+  console.log("Paginated array:");
+  console.log(paginatedArray, undefined, 2);
+}
+
+//Viewsas blogai subuildinamas (rodo tik paskutini masyvo elementa), tas pats vyksta ir kai trinami elementai issitrina gerai, bet subuildina viewsa blogai. Why?
+function createPaginatedHTMLstructure() {
+  paginatedContainer.innerHTML = "";
+  paginatedArray.forEach((item: any) => {
+    let div: HTMLElement = document.createElement("div");
+    let p: HTMLParagraphElement = document.createElement("p");
+    let deleteButton: HTMLElement = document.createElement("button");
+    let img: HTMLImageElement = document.createElement("img");
+    div.setAttribute("id", `paginated-item-` + item.id);
+    paginatedContainer.appendChild(div);
+    let paginatedItemDiv = document.querySelector(
+      `#paginated-item-${item.id}`
+    )!;
+    img.src = `${item.conditions}` + `.png`;
+    p.textContent =
+      "City: " +
+      item.city +
+      " Country: " +
+      item.country +
+      " Temp: " +
+      item.temp +
+      " Humidity: " +
+      item.humidity +
+      " Wind speed: " +
+      item.windspeed +
+      " Pressure: " +
+      item.pressure +
+      " Sunrise: " +
+      item.sunrise +
+      " Sunset: " +
+      item.sunset;
+    p.classList.add("paragraph");
+    deleteButton.innerHTML = "Delete";
+    deleteButton.classList.add("button", "is-danger");
+    deleteButton.setAttribute("id", `weather-button-` + item.id);
+    paginatedItemDiv.appendChild(img);
+    paginatedItemDiv.appendChild(p);
+    paginatedItemDiv.appendChild(deleteButton);
+  });
+}
+
+function prevPage() {
+  currentPageGlobal = currentPageGlobal - 1;
+  console.log("prev page button clicked. Call pagination function again.");
+}
+
+function nextPage() {
+  currentPageGlobal = currentPageGlobal + 1;
+  console.log("next page button clicked. Call pagination function again.");
 }

@@ -5,28 +5,56 @@
     <script crossorigin src="/src/main.ts" type="module"></script>
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <link rel="stylesheet" href="src/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css"
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite + TS</title>
   </head>
   <body>
     <div id="app">
-      <div class="outer-wrapper">
+      <div class="wrapper">
         <div class="section-1">
-          <h3>Forecasts from API</h3>
-          <div>
-            <input id="search-input" type="text" />
-            <button id="search-button">Search</button>
+          <h3 class="title is-3">Forecasts from API</h3>
+          <div class="input-section">
+            <input
+              placeholder="Enter city or country name"
+              class="input is-primary"
+              id="search-input"
+              type="text"
+            />
+            <button class="button is-primary" id="search-button">Search</button>
           </div>
           <div id="weather-list"></div>
         </div>
         <div class="section-2">
-          <h3>Forecasts from cached data</h3>
-          <div>
-            <input id="search-input-from-cache" type="text" />
-            <button id="search-button-from-cache">Search</button>
+          <h3 class="title is-3">Forecasts from cached data</h3>
+          <div class="input-section">
+            <input
+              placeholder="Enter city or country name"
+              class="input is-primary"
+              id="search-input-from-cache"
+              type="text"
+            />
+            <button class="button is-primary" id="search-button-from-cache">
+              Search
+            </button>
           </div>
           <div id="weather-list-already-added"></div>
         </div>
+      </div>
+      <div class="pagination-test">
+        <h3 class="title is-3">Pagination testing (See console.log)</h3>
+        <button id="call-pagination" class="button is-primary">
+          Call pagination function
+        </button>
+        <button id="test-paginated-array" class="button is-primary">
+          Test paginated array
+        </button>
+        <button id="prev-page" class="button is-primary">Prev Page</button>
+        <button id="next-page" class="button is-primary">Next Page</button>
+        <div id="paginated-container"></div>
       </div>
     </div>
   </body>
