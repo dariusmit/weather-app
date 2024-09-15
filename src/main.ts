@@ -17,8 +17,10 @@ interface weatherType {
 
 //Onload actions
 window.onload = () => {
-  getListView();
-  getCachedListView();
+  getCurrentPage1();
+  getCurrentPage2();
+  displayForecasts1stList();
+  displayForecasts2ndList();
   isValueFound = false;
   localStorage.setItem("isFoundValue", String(isValueFound));
   isValueFound1stList = false;
@@ -35,7 +37,6 @@ const searchButton: HTMLElement = document.getElementById("search-button")!;
 let weatherListDiv: HTMLElement = document.getElementById("weather-list")!;
 const searchInput = <HTMLInputElement>document.getElementById("search-input");
 let searchInputValue: string = "";
-//let ValueObject: any = {};
 let isValueFound1stList =
   localStorage.getItem("isFoundValue 1st list") || false;
 searchInput.addEventListener("change", updateValue);
@@ -122,14 +123,48 @@ async function getWeatherData(): Promise<void> {
 function displayForecasts1stList() {
   getArrayData();
   weatherListDiv.innerHTML = "";
-  savedWeatherArray.forEach((item: any) => {
+  createPaginatedArray1(currentPage1);
+  buildHTML1();
+}
+
+function displayForecasts2ndList() {
+  getCachedListArray();
+  weatherListAlreadyAddedDiv.innerHTML = "";
+  createPaginatedArray2(currentPage2);
+  buildHTML2();
+}
+
+function buildHTML1() {
+  paginated1stArray.forEach((item: any) => {
+    let div: HTMLElement = document.createElement("div");
+    let p: HTMLParagraphElement = document.createElement("p");
+    let deleteButton: HTMLElement = document.createElement("button");
+    div.setAttribute("id", `weather-item-` + item.id);
+    weatherListDiv.appendChild(div);
+    let weatherItemDiv = document.querySelector(`#weather-item-${item.id}`)!;
+    p.textContent = "City: " + item.city + " Country: " + item.country;
+    p.classList.add("paragraph");
+    deleteButton.innerHTML = "Delete";
+    deleteButton.classList.add("button", "is-danger");
+    deleteButton.setAttribute("id", `weather-button-` + item.id);
+    weatherItemDiv.appendChild(p);
+    weatherItemDiv.appendChild(deleteButton);
+  });
+  savePaginatedView1();
+  getPaginatedView1();
+}
+
+function buildHTML2() {
+  paginated2ndArray.forEach((item: any) => {
     let div: HTMLElement = document.createElement("div");
     let p: HTMLParagraphElement = document.createElement("p");
     let deleteButton: HTMLElement = document.createElement("button");
     let img: HTMLImageElement = document.createElement("img");
-    div.setAttribute("id", `weather-item-` + item.id);
-    weatherListDiv.appendChild(div);
-    let weatherItemDiv = document.querySelector(`#weather-item-${item.id}`)!;
+    div.setAttribute("id", `weather-cached-item-` + item.id);
+    weatherListAlreadyAddedDiv.appendChild(div);
+    let weatherItemCachedDiv = document.querySelector(
+      `#weather-cached-item-${item.id}`
+    )!;
     img.src = `${item.conditions}` + `.png`;
     p.textContent =
       "City: " +
@@ -152,12 +187,12 @@ function displayForecasts1stList() {
     deleteButton.innerHTML = "Delete";
     deleteButton.classList.add("button", "is-danger");
     deleteButton.setAttribute("id", `weather-button-` + item.id);
-    weatherItemDiv.appendChild(img);
-    weatherItemDiv.appendChild(p);
-    weatherItemDiv.appendChild(deleteButton);
+    weatherItemCachedDiv.appendChild(img);
+    weatherItemCachedDiv.appendChild(p);
+    weatherItemCachedDiv.appendChild(deleteButton);
   });
-  saveView();
-  getListView();
+  savePaginatedView2();
+  getPaginatedView2();
 }
 
 //Delete logic. 1st list.
@@ -224,8 +259,25 @@ function saveView() {
   localStorage.setItem("list view", weatherListDiv.innerHTML);
 }
 
-function getListView() {
-  weatherListDiv.innerHTML = localStorage.getItem("list view") || "";
+function savePaginatedView1() {
+  localStorage.setItem("paginated list view 1", weatherListDiv.innerHTML);
+}
+
+function getPaginatedView1() {
+  weatherListDiv.innerHTML =
+    localStorage.getItem("paginated list view 1") || "";
+}
+
+function savePaginatedView2() {
+  localStorage.setItem(
+    "paginated list view 2",
+    weatherListAlreadyAddedDiv.innerHTML
+  );
+}
+
+function getPaginatedView2() {
+  weatherListAlreadyAddedDiv.innerHTML =
+    localStorage.getItem("paginated list view 2") || "";
 }
 //===================================================================================================================================================================================
 //Search already added forecast functionality below. 2nd list
@@ -282,7 +334,7 @@ function buildArrayFromAlreadyAdded() {
             }
             saveCachedListArray();
             saveFoundValue();
-            displayForecasts();
+            displayForecasts2ndList();
             break;
           }
         } else {
@@ -294,7 +346,7 @@ function buildArrayFromAlreadyAdded() {
           }
           saveCachedListArray();
           saveFoundValue();
-          displayForecasts();
+          displayForecasts2ndList();
         }
       }
       /*
@@ -315,14 +367,14 @@ function buildArrayFromAlreadyAdded() {
 function displayForecasts() {
   getCachedListArray();
   weatherListAlreadyAddedDiv.innerHTML = "";
-  foundValuesArray.forEach((item: any) => {
+  paginated2ndArray.forEach((item: any) => {
     let div: HTMLElement = document.createElement("div");
     let p: HTMLParagraphElement = document.createElement("p");
     let deleteButton: HTMLElement = document.createElement("button");
     let img: HTMLImageElement = document.createElement("img");
     div.setAttribute("id", `weather-item-cached-` + item.id);
     weatherListAlreadyAddedDiv.appendChild(div);
-    let weatherItemDiv = document.querySelector(
+    let weatherItemCachedDiv = document.querySelector(
       `#weather-item-cached-${item.id}`
     )!;
     img.src = `${item.conditions}` + `.png`;
@@ -347,12 +399,12 @@ function displayForecasts() {
     deleteButton.innerHTML = "Delete";
     deleteButton.classList.add("button", "is-danger");
     deleteButton.setAttribute("id", `weather-button-cached` + item.id);
-    weatherItemDiv.appendChild(img);
-    weatherItemDiv.appendChild(p);
-    weatherItemDiv.appendChild(deleteButton);
+    weatherItemCachedDiv.appendChild(img);
+    weatherItemCachedDiv.appendChild(p);
+    weatherItemCachedDiv.appendChild(deleteButton);
   });
-  saveCachedListView();
-  getCachedListView();
+  savePaginatedView2();
+  displayForecasts2ndList();
 }
 
 //Delete logic. 2nd list
@@ -422,11 +474,6 @@ function saveCachedListView() {
   );
 }
 
-function getCachedListView() {
-  weatherListAlreadyAddedDiv.innerHTML =
-    localStorage.getItem("cached list view") || "";
-}
-
 function saveFoundValue() {
   localStorage.setItem("found value object", JSON.stringify(foundValueObject));
 }
@@ -437,100 +484,173 @@ function getFoundValue() {
   );
 }
 //===================================================================================================================================================================================
-//Pagination testing
+//Pagination 1st list
 //===================================================================================================================================================================================
-let currentPageGlobal = 1;
-let itemsPerPageGlobal = 3;
-let paginatedArray: Array<Object> = [];
-const paginatedContainer: HTMLElement = document.getElementById(
-  "paginated-container"
-)!;
-const pageDownButton: HTMLElement = document.getElementById("prev-page")!;
-const pageUpButton: HTMLElement = document.getElementById("next-page")!;
-const testPaginatedArrayButton: HTMLElement = document.getElementById(
-  "test-paginated-array"
-)!;
-const callPaginationFunctionButton: HTMLElement =
-  document.getElementById("call-pagination")!;
+//Global variable for both lists
+const itemsPerPage = 10;
+//===================================================================================================================================================================================
+let currentPage1 = 1;
+let paginated1stArray: Array<Object> = [];
+const pageDownButton1: HTMLElement = document.getElementById("prev-page-1")!;
+const pageUpButton1: HTMLElement = document.getElementById("next-page-1")!;
+pageUpButton1.addEventListener("click", nextPage1);
+pageDownButton1.addEventListener("click", prevPage1);
 
-pageUpButton.addEventListener("click", nextPage);
-pageDownButton.addEventListener("click", prevPage);
-testPaginatedArrayButton.addEventListener("click", testPaginatedArray);
-callPaginationFunctionButton.addEventListener("click", () =>
-  createPaginatedArray(currentPageGlobal, itemsPerPageGlobal)
-);
+function saveCurrentPage1() {
+  localStorage.setItem("current page 1", String(currentPage1));
+}
 
-function createPaginatedArray(currentPage: number, itemsPerPage: number) {
-  console.log("Pagination function was called. Now press test paginated array");
-  paginatedArray = [];
+function getCurrentPage1() {
+  currentPage1 = Number(localStorage.getItem("current page 1") || 1);
+}
+
+function savePaginatedArray1() {
+  localStorage.setItem("paginated array 1", JSON.stringify(paginated1stArray));
+}
+
+function getPaginatedArray1() {
+  paginated1stArray = JSON.parse(
+    localStorage.getItem("paginated array 1") || "[]"
+  );
+}
+
+function createPaginatedArray1(currentPage: number) {
+  console.log(
+    "Pagination function was called. Now press test paginated array if not called"
+  );
+  getPaginatedArray1();
+  paginated1stArray = [];
   for (let i = 0; i < savedWeatherArray.length; i++) {
     if (
       i >= (currentPage - 1) * itemsPerPage &&
       i < currentPage * itemsPerPage
     ) {
-      paginatedArray.push(savedWeatherArray[i]);
+      paginated1stArray.push(savedWeatherArray[i]);
     }
   }
-  //Create and render
-  createPaginatedHTMLstructure();
+  savePaginatedArray1();
 }
 
-function testPaginatedArray() {
-  console.log("Current page: ");
-  console.log(currentPageGlobal);
-  console.log("Page limit: ");
-  console.log(itemsPerPageGlobal);
-  console.log("Paginated array:");
-  console.log(paginatedArray, undefined, 2);
+function prevPage1() {
+  getCurrentPage1();
+  if (currentPage1 === 1) {
+    alert("This is already first page");
+    saveCurrentPage1();
+  } else {
+    currentPage1 = currentPage1 - 1;
+    console.log("prev page button clicked. Pagination function called");
+    getArrayData();
+    weatherListDiv.innerHTML = "";
+    createPaginatedArray1(currentPage1);
+    buildHTML1();
+    saveCurrentPage1();
+  }
 }
 
-//Viewsas blogai subuildinamas (rodo tik paskutini masyvo elementa), tas pats vyksta ir kai trinami elementai issitrina gerai, bet subuildina viewsa blogai. Why?
-function createPaginatedHTMLstructure() {
-  paginatedContainer.innerHTML = "";
-  paginatedArray.forEach((item: any) => {
-    let div: HTMLElement = document.createElement("div");
-    let p: HTMLParagraphElement = document.createElement("p");
-    let deleteButton: HTMLElement = document.createElement("button");
-    let img: HTMLImageElement = document.createElement("img");
-    div.setAttribute("id", `paginated-item-` + item.id);
-    paginatedContainer.appendChild(div);
-    let paginatedItemDiv = document.querySelector(
-      `#paginated-item-${item.id}`
-    )!;
-    img.src = `${item.conditions}` + `.png`;
-    p.textContent =
-      "City: " +
-      item.city +
-      " Country: " +
-      item.country +
-      " Temp: " +
-      item.temp +
-      " Humidity: " +
-      item.humidity +
-      " Wind speed: " +
-      item.windspeed +
-      " Pressure: " +
-      item.pressure +
-      " Sunrise: " +
-      item.sunrise +
-      " Sunset: " +
-      item.sunset;
-    p.classList.add("paragraph");
-    deleteButton.innerHTML = "Delete";
-    deleteButton.classList.add("button", "is-danger");
-    deleteButton.setAttribute("id", `weather-button-` + item.id);
-    paginatedItemDiv.appendChild(img);
-    paginatedItemDiv.appendChild(p);
-    paginatedItemDiv.appendChild(deleteButton);
-  });
+function nextPage1() {
+  getCurrentPage1();
+  getPaginatedArray1();
+  getArrayData();
+  if (paginated1stArray.length === savedWeatherArray.length) {
+    alert("This is already last page");
+    saveCurrentPage1();
+  } else {
+    getCurrentPage1();
+    if (currentPage1 <= Math.floor(savedWeatherArray.length / itemsPerPage)) {
+      currentPage1 = currentPage1 + 1;
+      console.log("next page button clicked. Pagination function called ");
+      getArrayData();
+      weatherListDiv.innerHTML = "";
+      createPaginatedArray1(currentPage1);
+      buildHTML1();
+      saveCurrentPage1();
+    } else {
+      alert("This is already last page");
+      saveCurrentPage1();
+    }
+  }
+}
+//===================================================================================================================================================================================
+//Pagination 2nd list
+//===================================================================================================================================================================================
+let currentPage2 = 1;
+let paginated2ndArray: Array<Object> = [];
+const pageDownButton2: HTMLElement = document.getElementById("prev-page-2")!;
+const pageUpButton2: HTMLElement = document.getElementById("next-page-2")!;
+pageUpButton2.addEventListener("click", nextPage2);
+pageDownButton2.addEventListener("click", prevPage2);
+
+function saveCurrentPage2() {
+  localStorage.setItem("current page 2", String(currentPage2));
 }
 
-function prevPage() {
-  currentPageGlobal = currentPageGlobal - 1;
-  console.log("prev page button clicked. Call pagination function again.");
+function getCurrentPage2() {
+  currentPage2 = Number(localStorage.getItem("current page 2") || 1);
 }
 
-function nextPage() {
-  currentPageGlobal = currentPageGlobal + 1;
-  console.log("next page button clicked. Call pagination function again.");
+function savePaginatedArray2() {
+  localStorage.setItem("paginated array 2", JSON.stringify(paginated2ndArray));
+}
+
+function getPaginatedArray2() {
+  paginated2ndArray = JSON.parse(
+    localStorage.getItem("paginated array 2") || "[]"
+  );
+}
+
+function createPaginatedArray2(currentPage: number) {
+  console.log(
+    "Pagination function was called. Now press test paginated array if not called"
+  );
+  getPaginatedArray2();
+  paginated2ndArray = [];
+  for (let i = 0; i < foundValuesArray.length; i++) {
+    if (
+      i >= (currentPage - 1) * itemsPerPage &&
+      i < currentPage * itemsPerPage
+    ) {
+      paginated2ndArray.push(foundValuesArray[i]);
+    }
+  }
+  savePaginatedArray2();
+}
+
+function prevPage2() {
+  getCurrentPage2();
+  if (currentPage2 === 1) {
+    alert("This is already first page");
+    saveCurrentPage2();
+  } else {
+    currentPage2 = currentPage2 - 1;
+    console.log("prev page button clicked. Pagination function called");
+    getCachedListArray();
+    weatherListAlreadyAddedDiv.innerHTML = "";
+    createPaginatedArray2(currentPage2);
+    buildHTML2();
+    saveCurrentPage2();
+  }
+}
+
+function nextPage2() {
+  getCurrentPage2();
+  getPaginatedArray2();
+  getCachedListArray();
+  if (paginated2ndArray.length === foundValuesArray.length) {
+    alert("This is already last page");
+    saveCurrentPage2();
+  } else {
+    getCurrentPage2();
+    if (currentPage2 <= Math.floor(foundValuesArray.length / itemsPerPage)) {
+      currentPage2 = currentPage2 + 1;
+      console.log("next page button clicked. Pagination function called ");
+      getCachedListArray();
+      weatherListAlreadyAddedDiv.innerHTML = "";
+      createPaginatedArray2(currentPage2);
+      buildHTML2();
+      saveCurrentPage2();
+    } else {
+      alert("This is already last page");
+      saveCurrentPage2();
+    }
+  }
 }
