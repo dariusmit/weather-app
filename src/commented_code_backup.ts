@@ -52,3 +52,44 @@ testArrayButton.addEventListener("click", (): void => {
   console.log(JSON.stringify(savedWeatherList, undefined, 2));
 });
 */
+
+//Construct list backup
+/*
+  getArrayData();
+  let div: HTMLElement = document.createElement("div");
+  let p: HTMLParagraphElement = document.createElement("p");
+  let deleteButton: HTMLElement = document.createElement("button");
+  let img: HTMLImageElement = document.createElement("img");
+  savedWeatherArray.forEach((item) => {
+    div.setAttribute("id", `item-` + savedWeatherArray.length);
+    weatherListDiv.appendChild(div);
+    let weatherItemDiv = document.querySelector(
+      `#item-${savedWeatherArray.length}`
+    )!;
+    img.src = `${item.conditions}` + `.png`;
+    p.textContent =
+      "City: " +
+      item.city +
+      " Country: " +
+      item.country +
+      " Temp: " +
+      item.temp +
+      " Humidity: " +
+      item.humidity +
+      " Wind speed: " +
+      item.windspeed +
+      " Pressure: " +
+      item.pressure +
+      " Sunrise: " +
+      item.sunrise +
+      " Sunset: " +
+      item.sunset;
+    deleteButton.innerHTML = "Delete";
+    deleteButton.setAttribute("id", String(item.id));
+    weatherItemDiv.appendChild(img);
+    weatherItemDiv.appendChild(p);
+    weatherItemDiv.appendChild(deleteButton);
+  });
+  saveViewToStorage();
+  renderList();
+  */

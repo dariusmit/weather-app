@@ -1,0 +1,1 @@
+1. View neatsiupdeitina after deletion according to changed array. Atrodo kad viewse palieka butent ta elementa ant kurio paspaudziau delete, why?
