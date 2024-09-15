@@ -17,8 +17,14 @@ interface weatherType {
 
 //Onload actions
 window.onload = () => {
+  getArrayData();
+  getCachedListArray();
   getCurrentPage1();
   getCurrentPage2();
+  updateCurrentpage1View();
+  updateCurrentpage2View();
+  updateRecords1stListView();
+  updateRecords2ndListView();
   displayForecasts1stList();
   displayForecasts2ndList();
   isValueFound = false;
@@ -76,6 +82,7 @@ async function getWeatherData(): Promise<void> {
         });
         saveArrayToStorage();
         displayForecasts1stList();
+        updateRecords1stListView();
       } else {
         for (let i = 0; i < savedWeatherArray.length; i++) {
           console.log(
@@ -102,6 +109,7 @@ async function getWeatherData(): Promise<void> {
             });
             saveArrayToStorage();
             displayForecasts1stList();
+            updateRecords1stListView();
             break;
           }
         }
@@ -154,47 +162,6 @@ function buildHTML1() {
   getPaginatedView1();
 }
 
-function buildHTML2() {
-  paginated2ndArray.forEach((item: any) => {
-    let div: HTMLElement = document.createElement("div");
-    let p: HTMLParagraphElement = document.createElement("p");
-    let deleteButton: HTMLElement = document.createElement("button");
-    let img: HTMLImageElement = document.createElement("img");
-    div.setAttribute("id", `weather-cached-item-` + item.id);
-    weatherListAlreadyAddedDiv.appendChild(div);
-    let weatherItemCachedDiv = document.querySelector(
-      `#weather-cached-item-${item.id}`
-    )!;
-    img.src = `${item.conditions}` + `.png`;
-    p.textContent =
-      "City: " +
-      item.city +
-      " Country: " +
-      item.country +
-      " Temp: " +
-      item.temp +
-      " Humidity: " +
-      item.humidity +
-      " Wind speed: " +
-      item.windspeed +
-      " Pressure: " +
-      item.pressure +
-      " Sunrise: " +
-      item.sunrise +
-      " Sunset: " +
-      item.sunset;
-    p.classList.add("paragraph");
-    deleteButton.innerHTML = "Delete";
-    deleteButton.classList.add("button", "is-danger");
-    deleteButton.setAttribute("id", `weather-button-` + item.id);
-    weatherItemCachedDiv.appendChild(img);
-    weatherItemCachedDiv.appendChild(p);
-    weatherItemCachedDiv.appendChild(deleteButton);
-  });
-  savePaginatedView2();
-  getPaginatedView2();
-}
-
 //Delete logic. 1st list.
 weatherListDiv.addEventListener("click", function (e) {
   let element = e.target as HTMLElement;
@@ -216,6 +183,7 @@ function deleteItem(clickID: number): void {
   saveView();
   saveArrayToStorage();
   displayForecasts1stList();
+  updateRecords1stListView();
 }
 
 //Does value exist. 1st list.
@@ -335,6 +303,7 @@ function buildArrayFromAlreadyAdded() {
             saveCachedListArray();
             saveFoundValue();
             displayForecasts2ndList();
+            updateRecords2ndListView();
             break;
           }
         } else {
@@ -347,6 +316,7 @@ function buildArrayFromAlreadyAdded() {
           saveCachedListArray();
           saveFoundValue();
           displayForecasts2ndList();
+          updateRecords2ndListView();
         }
       }
       /*
@@ -428,6 +398,48 @@ function deleteCachedListItem(clickID: number): void {
   saveCachedListArray();
   saveCachedListView();
   displayForecasts();
+  updateRecords2ndListView();
+}
+
+function buildHTML2() {
+  paginated2ndArray.forEach((item: any) => {
+    let div: HTMLElement = document.createElement("div");
+    let p: HTMLParagraphElement = document.createElement("p");
+    let deleteButton: HTMLElement = document.createElement("button");
+    let img: HTMLImageElement = document.createElement("img");
+    div.setAttribute("id", `weather-cached-item-` + item.id);
+    weatherListAlreadyAddedDiv.appendChild(div);
+    let weatherItemCachedDiv = document.querySelector(
+      `#weather-cached-item-${item.id}`
+    )!;
+    img.src = `${item.conditions}` + `.png`;
+    p.textContent =
+      "City: " +
+      item.city +
+      " Country: " +
+      item.country +
+      " Temp: " +
+      item.temp +
+      " Humidity: " +
+      item.humidity +
+      " Wind speed: " +
+      item.windspeed +
+      " Pressure: " +
+      item.pressure +
+      " Sunrise: " +
+      item.sunrise +
+      " Sunset: " +
+      item.sunset;
+    p.classList.add("paragraph");
+    deleteButton.innerHTML = "Delete";
+    deleteButton.classList.add("button", "is-danger");
+    deleteButton.setAttribute("id", `weather-button-` + item.id);
+    weatherItemCachedDiv.appendChild(img);
+    weatherItemCachedDiv.appendChild(p);
+    weatherItemCachedDiv.appendChild(deleteButton);
+  });
+  savePaginatedView2();
+  getPaginatedView2();
 }
 
 //Does value exist. 2nd list
@@ -487,7 +499,7 @@ function getFoundValue() {
 //Pagination 1st list
 //===================================================================================================================================================================================
 //Global variable for both lists
-const itemsPerPage = 10;
+const itemsPerPage = 3;
 //===================================================================================================================================================================================
 let currentPage1 = 1;
 let paginated1stArray: Array<Object> = [];
@@ -495,6 +507,23 @@ const pageDownButton1: HTMLElement = document.getElementById("prev-page-1")!;
 const pageUpButton1: HTMLElement = document.getElementById("next-page-1")!;
 pageUpButton1.addEventListener("click", nextPage1);
 pageDownButton1.addEventListener("click", prevPage1);
+const currentPage1Container: HTMLElement = document.getElementById(
+  "current-page-1-container"
+)!;
+
+const recordsCountContainer1: HTMLElement = document.getElementById(
+  "records-1st-list-container"
+)!;
+
+function updateCurrentpage1View() {
+  currentPage1Container.innerHTML = "";
+  currentPage1Container.innerHTML = String(currentPage1);
+}
+
+function updateRecords1stListView() {
+  recordsCountContainer1.innerHTML = "";
+  recordsCountContainer1.innerHTML = String(savedWeatherArray.length);
+}
 
 function saveCurrentPage1() {
   localStorage.setItem("current page 1", String(currentPage1));
@@ -515,9 +544,6 @@ function getPaginatedArray1() {
 }
 
 function createPaginatedArray1(currentPage: number) {
-  console.log(
-    "Pagination function was called. Now press test paginated array if not called"
-  );
   getPaginatedArray1();
   paginated1stArray = [];
   for (let i = 0; i < savedWeatherArray.length; i++) {
@@ -545,6 +571,7 @@ function prevPage1() {
     buildHTML1();
     saveCurrentPage1();
   }
+  updateCurrentpage1View();
 }
 
 function nextPage1() {
@@ -569,6 +596,7 @@ function nextPage1() {
       saveCurrentPage1();
     }
   }
+  updateCurrentpage1View();
 }
 //===================================================================================================================================================================================
 //Pagination 2nd list
@@ -579,6 +607,23 @@ const pageDownButton2: HTMLElement = document.getElementById("prev-page-2")!;
 const pageUpButton2: HTMLElement = document.getElementById("next-page-2")!;
 pageUpButton2.addEventListener("click", nextPage2);
 pageDownButton2.addEventListener("click", prevPage2);
+const currentPage2Container: HTMLElement = document.getElementById(
+  "current-page-2-container"
+)!;
+const recordsCountContainer2: HTMLElement = document.getElementById(
+  "records-2nd-list-container"
+)!;
+
+function updateCurrentpage2View() {
+  currentPage2Container.innerHTML = "";
+  getCurrentPage2();
+  currentPage2Container.innerHTML = String(currentPage2);
+}
+
+function updateRecords2ndListView() {
+  recordsCountContainer2.innerHTML = "";
+  recordsCountContainer2.innerHTML = String(foundValuesArray.length);
+}
 
 function saveCurrentPage2() {
   localStorage.setItem("current page 2", String(currentPage2));
@@ -599,9 +644,6 @@ function getPaginatedArray2() {
 }
 
 function createPaginatedArray2(currentPage: number) {
-  console.log(
-    "Pagination function was called. Now press test paginated array if not called"
-  );
   getPaginatedArray2();
   paginated2ndArray = [];
   for (let i = 0; i < foundValuesArray.length; i++) {
@@ -617,6 +659,7 @@ function createPaginatedArray2(currentPage: number) {
 
 function prevPage2() {
   getCurrentPage2();
+
   if (currentPage2 === 1) {
     alert("This is already first page");
     saveCurrentPage2();
@@ -629,6 +672,7 @@ function prevPage2() {
     buildHTML2();
     saveCurrentPage2();
   }
+  updateCurrentpage2View();
 }
 
 function nextPage2() {
@@ -653,4 +697,5 @@ function nextPage2() {
       saveCurrentPage2();
     }
   }
+  updateCurrentpage2View();
 }

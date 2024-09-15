@@ -6,13 +6,18 @@
     margin-bottom: 30px;
 }
 
+#weather-list-already-added {
+    margin-bottom: 30px;
+}
+
+#weather-list-already-added div {
+    margin-bottom: 30px;
+}
+
+
 .wrapper {
     display: flex;
     padding: 40px;
-}
-
-.pagination-buttons-div {
-    padding-top: 40px;
 }
 
 .section-1 {
@@ -40,4 +45,12 @@ input {
 
 .paragraph {
     margin-bottom: 20px;
+}
+
+.current-page {
+    margin-bottom: 10px;
+}
+
+.records-count {
+    margin-bottom: 10px;
 }
