@@ -34,13 +34,19 @@
     padding: 20px;
 }
 
+.input-label {
+    margin-bottom: 15px;
+}
+
 .input-section {
     display: flex;
+    flex-direction: column;
     margin-bottom: 60px;
 }
 
 input {
     margin-right: 20px !important;
+    margin-bottom: 15px !important;
 }
 
 .paragraph {
@@ -53,4 +59,16 @@ input {
 
 .records-count {
     margin-bottom: 10px;
+}
+
+#search-input-city,
+#search-input-zip,
+#search-input-coord {
+    display: none;
+}
+
+#city-search,
+#zip-search,
+#coord-search {
+    display: none;
 }

@@ -41,26 +41,131 @@ window.onload = () => {
 let savedWeatherArray: weatherType[] = [];
 const searchButton: HTMLElement = document.getElementById("search-button")!;
 let weatherListDiv: HTMLElement = document.getElementById("weather-list")!;
-const searchInput = <HTMLInputElement>document.getElementById("search-input");
-let searchInputValue: string = "";
+const searchInputCity = <HTMLInputElement>(
+  document.getElementById("search-input-city")
+);
+const searchInputZip = <HTMLInputElement>(
+  document.getElementById("search-input-zip")
+);
+const searchInputCoord = <HTMLInputElement>(
+  document.getElementById("search-input-coord")
+);
+const cityLabel = <HTMLInputElement>document.getElementById("city-search");
+const zipLabel = <HTMLInputElement>document.getElementById("zip-search");
+const coordLabel = <HTMLInputElement>document.getElementById("coord-search");
+let searchInputValueCity: string = "";
+let searchInputValueZip: string = "";
+let searchInputValueCoord: string = "";
+let zip = "";
+let country_code = "";
+let lat = "";
+let lon = "";
+let city = "";
+let cityEnabled = false;
+let zipEnabled = false;
+let coordEnabled = false;
+let cityRadio: HTMLElement = document.getElementById("city")!;
+let zipRadio: HTMLElement = document.getElementById("zip")!;
+let coordRadio: HTMLElement = document.getElementById("coord")!;
 let isValueFound1stList =
   localStorage.getItem("isFoundValue 1st list") || false;
-searchInput.addEventListener("change", updateValue);
+searchInputCity.addEventListener("change", updateValueCity);
+searchInputZip.addEventListener("change", updateValueZip);
+searchInputCoord.addEventListener("change", updateValueCoord);
 searchButton.addEventListener("click", getWeatherData);
+cityRadio.addEventListener("click", revealCitySearch);
+zipRadio.addEventListener("click", revealZipSearch);
+coordRadio.addEventListener("click", revealCoordSearch);
 
+function revealCitySearch() {
+  cityEnabled = true;
+  if (zipEnabled) {
+    zipLabel.style.display = "none";
+    searchInputZip.style.display = "none";
+    zipEnabled = false;
+  }
+  if (coordEnabled) {
+    coordLabel.style.display = "none";
+    searchInputCoord.style.display = "none";
+    coordEnabled = false;
+  }
+  searchInputCity.style.display = "block";
+  cityLabel.style.display = "block";
+}
+
+function revealZipSearch() {
+  zipEnabled = true;
+  if (cityEnabled) {
+    cityLabel.style.display = "none";
+    searchInputCity.style.display = "none";
+    cityEnabled = false;
+  }
+  if (coordEnabled) {
+    coordLabel.style.display = "none";
+    searchInputCoord.style.display = "none";
+    coordEnabled = false;
+  }
+  searchInputZip.style.display = "block";
+  zipLabel.style.display = "block";
+}
+
+function revealCoordSearch() {
+  coordEnabled = true;
+  if (cityEnabled) {
+    cityLabel.style.display = "none";
+    searchInputCity.style.display = "none";
+    cityEnabled = false;
+  }
+  if (zipEnabled) {
+    zipLabel.style.display = "none";
+    searchInputZip.style.display = "none";
+    zipEnabled = false;
+  }
+  searchInputCoord.style.display = "block";
+  coordLabel.style.display = "block";
+}
 //Get data from api. 1st list
 async function getWeatherData(): Promise<void> {
-  if (searchInputValue === "") {
-    alert("Please enter city name first");
+  //Radio selection functionality to switch between inputs and api calls
+  let testSearchInputValue = "";
+  const api_key = VITE_API_KEY;
+  const api_url = "https://api.openweathermap.org/data/2.5/weather?";
+  let api_url_options = ``;
+  if (cityEnabled) {
+    testSearchInputValue = searchInputValueCity;
+    api_url_options = `q=${city}` + `&units=metric` + `&appid=${api_key}`;
+    searchInputValueZip = "";
+    searchInputValueCoord = "";
+    searchInputZip.value = "";
+    searchInputCoord.value = "";
+  }
+
+  if (zipEnabled) {
+    testSearchInputValue = searchInputValueZip;
+    api_url_options =
+      `zip=${zip},${country_code}` + `&units=metric` + `&appid=${api_key}`;
+    searchInputValueCity = "";
+    searchInputValueCoord = "";
+    searchInputCoord.value = "";
+    searchInputCity.value = "";
+  }
+
+  if (coordEnabled) {
+    testSearchInputValue = searchInputValueCoord;
+    api_url_options =
+      `lat=${lat}` + `&lon=${lon}` + `&units=metric` + `&appid=${api_key}`;
+    searchInputValueZip = "";
+    searchInputValueCity = "";
+    searchInputCity.value = "";
+    searchInputZip.value = "";
+  }
+
+  if (testSearchInputValue === "") {
+    alert("Please enter value first");
   } else {
-    const api_key = import.meta.env.VITE_API_KEY;
-    const api_url =
-      "https://api.openweathermap.org/data/2.5/weather?units=metric";
-    let city = searchInputValue;
+    //For production turbut just use VITE_API_KEY in VERCEL ir turetu veikti
     try {
-      const { data } = await axios.get(
-        api_url + `&q=${city}` + `&appid=${api_key}`
-      );
+      const { data } = await axios.get(api_url + api_url_options);
       const sunriseUnix: number = data.sys.sunrise;
       const sunsetUnix: number = data.sys.sunset;
       const sunrise: Object = new Date(sunriseUnix * 1000);
@@ -190,7 +295,7 @@ function deleteItem(clickID: number): void {
 function doesValueExist1stList(): boolean {
   isValueFound1stList = false;
   savedWeatherArray.forEach((item: any) => {
-    if (item.city.toLowerCase() == searchInputValue.toLowerCase()) {
+    if (item.city.toLowerCase() == searchInputValueCity.toLowerCase()) {
       console.log("Values are equal");
       isValueFound1stList = true;
       localStorage.setItem(
@@ -209,9 +314,28 @@ function doesValueExist1stList(): boolean {
   }
 }
 
-//Function to updatate search input value. 1st list
-function updateValue(e: any): void {
-  searchInputValue = e.target.value.toLowerCase();
+//Function to updatate search input values. 1st list
+function updateValueCity(e: any): void {
+  searchInputValueCity = e.target.value.toLowerCase();
+  city = searchInputValueCity;
+}
+function updateValueZip(e: any): void {
+  searchInputValueZip = e.target.value;
+  let separatedZipInputArray = searchInputValueZip.split(", ");
+  separatedZipInputArray[0] = separatedZipInputArray[0].replace(/\s/g, "");
+  separatedZipInputArray[1] = separatedZipInputArray[1].replace(/\s/g, "");
+  zip = separatedZipInputArray[0];
+  country_code = separatedZipInputArray[1];
+  console.log(zip, country_code);
+}
+function updateValueCoord(e: any): void {
+  searchInputValueCoord = e.target.value;
+  let separatedCoordInputArray = searchInputValueCoord.split(", ");
+  separatedCoordInputArray[0] = separatedCoordInputArray[0].replace(/\s/g, "");
+  separatedCoordInputArray[1] = separatedCoordInputArray[1].replace(/\s/g, "");
+  lat = separatedCoordInputArray[0];
+  lon = separatedCoordInputArray[1];
+  console.log(lat, lon);
 }
 
 //Local cache functions. 1st list
@@ -259,7 +383,7 @@ let weatherListAlreadyAddedDiv: HTMLElement = document.getElementById(
   "weather-list-already-added"
 )!;
 const searchAlreadyAddedInput = <HTMLInputElement>(
-  document.getElementById("search-input-from-cache")
+  document.getElementById("search-input-city-from-cache")
 );
 let searchAlreadyAddedInputValue: string = "";
 let foundValueObject: any;

@@ -18,10 +18,42 @@
         <div class="section-1">
           <h3 class="title is-3">Forecasts from API</h3>
           <div class="input-section">
+            <div class="radio-section">
+              <p>How you want to search?</p>
+              <input type="radio" id="city" value="city" name="search-type" />
+              <label for="city">By City or Country name</label><br />
+              <input type="radio" id="zip" value="zip" name="search-type" />
+              <label for="zip">By Zip code and Country code</label><br />
+              <input type="radio" id="coord" value="coord" name="search-type" />
+              <label for="coord">By Coordinates</label><br />
+            </div>
+            <p class="input-label" id="city-search">
+              Search by City or Country name, like this - Kaunas or Germany:
+            </p>
             <input
               placeholder="Enter city or country name"
               class="input is-primary"
-              id="search-input"
+              id="search-input-city"
+              type="text"
+            />
+            <p class="input-label" id="zip-search">
+              Search by ZIP and Country code separated by comma, like this -
+              94040, US or 50464, LT:
+            </p>
+            <input
+              placeholder="Enter ZIP code and country code"
+              class="input is-primary"
+              id="search-input-zip"
+              type="text"
+            />
+            <p class="input-label" id="coord-search">
+              Search by Coordinates separated by comma, like this - 54.90, 23.90
+              or 44.34, 10.99:
+            </p>
+            <input
+              placeholder="Enter latitude and longitude"
+              class="input is-primary"
+              id="search-input-coord"
               type="text"
             />
             <button class="button is-primary" id="search-button">Search</button>
@@ -50,7 +82,7 @@
             <input
               placeholder="Enter city or country name"
               class="input is-primary"
-              id="search-input-from-cache"
+              id="search-input-city-from-cache"
               type="text"
             />
             <button class="button is-primary" id="search-button-from-cache">
