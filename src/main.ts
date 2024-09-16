@@ -128,7 +128,7 @@ function revealCoordSearch() {
 async function getWeatherData(): Promise<void> {
   //Radio selection functionality to switch between inputs and api calls
   let testSearchInputValue = "";
-  const api_key = VITE_API_KEY;
+  const api_key = import.meta.env.VITE_API_KEY;
   const api_url = "https://api.openweathermap.org/data/2.5/weather?";
   let api_url_options = ``;
   if (cityEnabled) {
