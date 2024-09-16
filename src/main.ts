@@ -13,6 +13,7 @@ interface weatherType {
   sunrise: string;
   sunset: string;
   conditions: string;
+  previousSearchValue: string;
 }
 
 //Onload actions
@@ -36,7 +37,6 @@ window.onload = () => {
 //===================================================================================================================================================================================
 //1st list functionality below. Data from the API
 //===================================================================================================================================================================================
-
 //Variables & Event listeners. 1st list
 let savedWeatherArray: weatherType[] = [];
 const searchButton: HTMLElement = document.getElementById("search-button")!;
@@ -77,6 +77,7 @@ cityRadio.addEventListener("click", revealCitySearch);
 zipRadio.addEventListener("click", revealZipSearch);
 coordRadio.addEventListener("click", revealCoordSearch);
 
+//Radio buttons functionality
 function revealCitySearch() {
   cityEnabled = true;
   if (zipEnabled) {
@@ -92,7 +93,6 @@ function revealCitySearch() {
   searchInputCity.style.display = "block";
   cityLabel.style.display = "block";
 }
-
 function revealZipSearch() {
   zipEnabled = true;
   if (cityEnabled) {
@@ -108,7 +108,6 @@ function revealZipSearch() {
   searchInputZip.style.display = "block";
   zipLabel.style.display = "block";
 }
-
 function revealCoordSearch() {
   coordEnabled = true;
   if (cityEnabled) {
@@ -124,9 +123,9 @@ function revealCoordSearch() {
   searchInputCoord.style.display = "block";
   coordLabel.style.display = "block";
 }
+
 //Get data from api. 1st list
 async function getWeatherData(): Promise<void> {
-  //Radio selection functionality to switch between inputs and api calls
   let testSearchInputValue = "";
   const api_key = import.meta.env.VITE_API_KEY;
   const api_url = "https://api.openweathermap.org/data/2.5/weather?";
@@ -139,7 +138,6 @@ async function getWeatherData(): Promise<void> {
     searchInputZip.value = "";
     searchInputCoord.value = "";
   }
-
   if (zipEnabled) {
     testSearchInputValue = searchInputValueZip;
     api_url_options =
@@ -149,7 +147,6 @@ async function getWeatherData(): Promise<void> {
     searchInputCoord.value = "";
     searchInputCity.value = "";
   }
-
   if (coordEnabled) {
     testSearchInputValue = searchInputValueCoord;
     api_url_options =
@@ -159,35 +156,49 @@ async function getWeatherData(): Promise<void> {
     searchInputCity.value = "";
     searchInputZip.value = "";
   }
-
   if (testSearchInputValue === "") {
     alert("Please enter value first");
   } else {
-    //For production turbut just use VITE_API_KEY in VERCEL ir turetu veikti
     try {
-      const { data } = await axios.get(api_url + api_url_options);
-      const sunriseUnix: number = data.sys.sunrise;
-      const sunsetUnix: number = data.sys.sunset;
-      const sunrise: Object = new Date(sunriseUnix * 1000);
-      const sunset: Object = new Date(sunsetUnix * 1000);
+      let { data } = await axios.get(api_url + api_url_options);
+      let sunriseUnix: number = data.sys.sunrise;
+      let sunsetUnix: number = data.sys.sunset;
+      let sunrise = new Date(sunriseUnix * 1000);
+      let sunset = new Date(sunsetUnix * 1000);
+      let sunriseHours = sunrise.getHours();
+      let sunriseMinutes = "0" + sunrise.getMinutes();
+      let formatedSunriseTime =
+        sunriseHours + ":" + sunriseMinutes.substring(1, 3);
+      let sunsetHours = sunset.getHours();
+      let sunsetMinutes = "0" + sunset.getMinutes();
+      let formatedSunsetTime =
+        sunsetHours + ":" + sunsetMinutes.substring(1, 3);
       getArrayData();
       if (savedWeatherArray.length === 0) {
-        console.log("Array is empty so we can just add the value");
-        savedWeatherArray.push({
-          id: savedWeatherArray.length,
-          city: data.name,
-          country: data.sys.country,
-          temp: data.main.temp,
-          humidity: data.main.humidity,
-          windspeed: data.wind.speed,
-          pressure: data.main.pressure,
-          sunrise: sunrise.toString(),
-          sunset: sunset.toString(),
-          conditions: data.weather[0].icon,
-        });
-        saveArrayToStorage();
-        displayForecasts1stList();
-        updateRecords1stListView();
+        if (
+          (data.name != "" && data.name != null) ||
+          (data.sys.country != "" && data.sys.country != null)
+        ) {
+          console.log("Array is empty so we can just add the value");
+          savedWeatherArray.push({
+            id: savedWeatherArray.length,
+            city: data.name,
+            country: data.sys.country,
+            temp: data.main.temp,
+            humidity: data.main.humidity,
+            windspeed: data.wind.speed,
+            pressure: data.main.pressure,
+            sunrise: formatedSunriseTime,
+            sunset: formatedSunsetTime,
+            conditions: data.weather[0].icon,
+            previousSearchValue: testSearchInputValue,
+          });
+          saveArrayToStorage();
+          displayForecasts1stList();
+          updateRecords1stListView();
+        } else {
+          console.log("correct location can't be found");
+        }
       } else {
         for (let i = 0; i < savedWeatherArray.length; i++) {
           console.log(
@@ -200,22 +211,30 @@ async function getWeatherData(): Promise<void> {
             console.log(
               "Values are not equal so we can add new value to the array"
             );
-            savedWeatherArray.push({
-              id: savedWeatherArray.length,
-              city: data.name,
-              country: data.sys.country,
-              temp: data.main.temp,
-              humidity: data.main.humidity,
-              windspeed: data.wind.speed,
-              pressure: data.main.pressure,
-              sunrise: sunrise.toString(),
-              sunset: sunset.toString(),
-              conditions: data.weather[0].icon,
-            });
-            saveArrayToStorage();
-            displayForecasts1stList();
-            updateRecords1stListView();
-            break;
+            if (
+              (data.name != "" && data.name != null) ||
+              (data.sys.country != "" && data.sys.country != null)
+            ) {
+              savedWeatherArray.push({
+                id: savedWeatherArray.length,
+                city: data.name,
+                country: data.sys.country,
+                temp: data.main.temp,
+                humidity: data.main.humidity,
+                windspeed: data.wind.speed,
+                pressure: data.main.pressure,
+                sunrise: formatedSunriseTime,
+                sunset: formatedSunsetTime,
+                conditions: data.weather[0].icon,
+                previousSearchValue: testSearchInputValue,
+              });
+              saveArrayToStorage();
+              displayForecasts1stList();
+              updateRecords1stListView();
+              break;
+            } else {
+              console.log("correct location can't be found");
+            }
           }
         }
       }
@@ -240,13 +259,7 @@ function displayForecasts1stList() {
   buildHTML1();
 }
 
-function displayForecasts2ndList() {
-  getCachedListArray();
-  weatherListAlreadyAddedDiv.innerHTML = "";
-  createPaginatedArray2(currentPage2);
-  buildHTML2();
-}
-
+//Build html structure from array. 2st list
 function buildHTML1() {
   paginated1stArray.forEach((item: any) => {
     let div: HTMLElement = document.createElement("div");
@@ -255,7 +268,7 @@ function buildHTML1() {
     div.setAttribute("id", `weather-item-` + item.id);
     weatherListDiv.appendChild(div);
     let weatherItemDiv = document.querySelector(`#weather-item-${item.id}`)!;
-    p.textContent = "City: " + item.city + " Country: " + item.country;
+    p.textContent = "City: " + item.city + ", Country: " + item.country;
     p.classList.add("paragraph");
     deleteButton.innerHTML = "Delete";
     deleteButton.classList.add("button", "is-danger");
@@ -293,25 +306,86 @@ function deleteItem(clickID: number): void {
 
 //Does value exist. 1st list.
 function doesValueExist1stList(): boolean {
-  isValueFound1stList = false;
-  savedWeatherArray.forEach((item: any) => {
-    if (item.city.toLowerCase() == searchInputValueCity.toLowerCase()) {
-      console.log("Values are equal");
-      isValueFound1stList = true;
+  if (cityEnabled) {
+    isValueFound1stList = false;
+    savedWeatherArray.forEach((item: any) => {
+      if (item.city.toLowerCase() == searchInputValueCity.toLowerCase()) {
+        console.log("Values are equal");
+        isValueFound1stList = true;
+        localStorage.setItem(
+          "isFoundValue 1st list",
+          String(isValueFound1stList)
+        );
+      }
+    });
+    if (isValueFound1stList) {
+      return true;
+    } else {
+      console.log("Values are not equal");
+      isValueFound1stList = false;
       localStorage.setItem(
         "isFoundValue 1st list",
         String(isValueFound1stList)
       );
+      return false;
     }
-  });
-  if (isValueFound1stList) {
-    return true;
-  } else {
-    console.log("Values are not equal");
-    isValueFound1stList = false;
-    localStorage.setItem("isFoundValue 1st list", String(isValueFound1stList));
-    return false;
   }
+  if (zipEnabled) {
+    isValueFound1stList = false;
+    savedWeatherArray.forEach((item: any) => {
+      if (
+        item.previousSearchValue.toLowerCase() ==
+        searchInputValueZip.toLowerCase()
+      ) {
+        console.log("Values are equal");
+        isValueFound1stList = true;
+        localStorage.setItem(
+          "isFoundValue 1st list",
+          String(isValueFound1stList)
+        );
+      }
+    });
+    if (isValueFound1stList) {
+      return true;
+    } else {
+      console.log("Values are not equal");
+      isValueFound1stList = false;
+      localStorage.setItem(
+        "isFoundValue 1st list",
+        String(isValueFound1stList)
+      );
+      return false;
+    }
+  }
+
+  if (coordEnabled) {
+    isValueFound1stList = false;
+    savedWeatherArray.forEach((item: any) => {
+      if (
+        item.previousSearchValue.toLowerCase() ==
+        searchInputValueCoord.toLowerCase()
+      ) {
+        console.log("Values are equal");
+        isValueFound1stList = true;
+        localStorage.setItem(
+          "isFoundValue 1st list",
+          String(isValueFound1stList)
+        );
+      }
+    });
+    if (isValueFound1stList) {
+      return true;
+    } else {
+      console.log("Values are not equal");
+      isValueFound1stList = false;
+      localStorage.setItem(
+        "isFoundValue 1st list",
+        String(isValueFound1stList)
+      );
+      return false;
+    }
+  }
+  return false;
 }
 
 //Function to updatate search input values. 1st list
@@ -320,21 +394,36 @@ function updateValueCity(e: any): void {
   city = searchInputValueCity;
 }
 function updateValueZip(e: any): void {
+  let separatedZipInputArray;
   searchInputValueZip = e.target.value;
-  let separatedZipInputArray = searchInputValueZip.split(", ");
-  separatedZipInputArray[0] = separatedZipInputArray[0].replace(/\s/g, "");
-  separatedZipInputArray[1] = separatedZipInputArray[1].replace(/\s/g, "");
-  zip = separatedZipInputArray[0];
-  country_code = separatedZipInputArray[1];
-  console.log(zip, country_code);
+  const validZipFormatRegExp = /[0-9], [A-Z]/i;
+  let isValid = validZipFormatRegExp.test(searchInputValueZip);
+  if (isValid === false) {
+    alert("Incorrect input value, see example");
+  } else {
+    if (searchInputValueZip.includes(".")) {
+      searchInputValueZip = searchInputValueZip.replace(".", ",");
+      searchInputValueZip = searchInputValueZip.replace(/\s/g, "");
+      separatedZipInputArray = searchInputValueZip.split(",");
+    } else {
+      searchInputValueZip = searchInputValueZip.replace(/\s/g, "");
+      separatedZipInputArray = searchInputValueZip.split(",");
+    }
+    separatedZipInputArray[0] = separatedZipInputArray[0].replace(/\s/g, "");
+    separatedZipInputArray[1] = separatedZipInputArray[1].replace(/\s/g, "");
+    zip = separatedZipInputArray[0];
+    country_code = separatedZipInputArray[1];
+  }
 }
 function updateValueCoord(e: any): void {
   searchInputValueCoord = e.target.value;
   let separatedCoordInputArray = searchInputValueCoord.split(", ");
   separatedCoordInputArray[0] = separatedCoordInputArray[0].replace(/\s/g, "");
   separatedCoordInputArray[1] = separatedCoordInputArray[1].replace(/\s/g, "");
-  lat = separatedCoordInputArray[0];
-  lon = separatedCoordInputArray[1];
+  separatedCoordInputArray[0] = separatedCoordInputArray[0].replace(",", ".");
+  separatedCoordInputArray[1] = separatedCoordInputArray[1].replace(",", ".");
+  lat = String(Math.round(Number(separatedCoordInputArray[0]) * 100) / 100);
+  lon = String(Math.round(Number(separatedCoordInputArray[1]) * 100) / 100);
   console.log(lat, lon);
 }
 
@@ -342,31 +431,25 @@ function updateValueCoord(e: any): void {
 function saveArrayToStorage() {
   localStorage.setItem("weather array", JSON.stringify(savedWeatherArray));
 }
-
 function getArrayData() {
   savedWeatherArray = JSON.parse(localStorage.getItem("weather array") || "[]");
 }
-
 function saveView() {
   localStorage.setItem("list view", weatherListDiv.innerHTML);
 }
-
 function savePaginatedView1() {
   localStorage.setItem("paginated list view 1", weatherListDiv.innerHTML);
 }
-
 function getPaginatedView1() {
   weatherListDiv.innerHTML =
     localStorage.getItem("paginated list view 1") || "";
 }
-
 function savePaginatedView2() {
   localStorage.setItem(
     "paginated list view 2",
     weatherListAlreadyAddedDiv.innerHTML
   );
 }
-
 function getPaginatedView2() {
   weatherListAlreadyAddedDiv.innerHTML =
     localStorage.getItem("paginated list view 2") || "";
@@ -396,7 +479,6 @@ searchAlreadyAddedButton.addEventListener("click", buildArrayFromAlreadyAdded);
 
 //Building new array from already added forecasts list. 2nd list
 function buildArrayFromAlreadyAdded() {
-  console.log("Search input value: " + searchAlreadyAddedInputValue);
   getCachedListArray();
   getArrayData();
   if (searchAlreadyAddedInputValue === "") {
@@ -444,7 +526,7 @@ function buildArrayFromAlreadyAdded() {
         }
       }
       /*
-      //This does not seem to work correctly
+      //This error does not seem to work correctly
       else {
         alert("Forecast does not exist in already added forecasts list");
         break;
@@ -475,16 +557,21 @@ function displayForecasts() {
     p.textContent =
       "City: " +
       item.city +
+      ", " +
       " Country: " +
       item.country +
+      ", " +
       " Temp: " +
       item.temp +
+      "°C, " +
       " Humidity: " +
       item.humidity +
       " Wind speed: " +
+      "m/s, " +
       item.windspeed +
       " Pressure: " +
       item.pressure +
+      "N/m², " +
       " Sunrise: " +
       item.sunrise +
       " Sunset: " +
@@ -525,6 +612,15 @@ function deleteCachedListItem(clickID: number): void {
   updateRecords2ndListView();
 }
 
+//Display data from the API. 2nd list
+function displayForecasts2ndList() {
+  getCachedListArray();
+  weatherListAlreadyAddedDiv.innerHTML = "";
+  createPaginatedArray2(currentPage2);
+  buildHTML2();
+}
+
+//Build HTML structure from array. 2nd list
 function buildHTML2() {
   paginated2ndArray.forEach((item: any) => {
     let div: HTMLElement = document.createElement("div");
@@ -540,16 +636,21 @@ function buildHTML2() {
     p.textContent =
       "City: " +
       item.city +
+      ", " +
       " Country: " +
       item.country +
+      ", " +
       " Temp: " +
       item.temp +
+      "°C, " +
       " Humidity: " +
       item.humidity +
       " Wind speed: " +
+      "m/s, " +
       item.windspeed +
       " Pressure: " +
       item.pressure +
+      "N/m², " +
       " Sunrise: " +
       item.sunrise +
       " Sunset: " +
@@ -596,24 +697,20 @@ function updateAlreadyAddedSearchValue(e: any): void {
 function saveCachedListArray() {
   localStorage.setItem("cached list array", JSON.stringify(foundValuesArray));
 }
-
 function getCachedListArray() {
   foundValuesArray = JSON.parse(
     localStorage.getItem("cached list array") || "[]"
   );
 }
-
 function saveCachedListView() {
   localStorage.setItem(
     "cached list view",
     weatherListAlreadyAddedDiv.innerHTML
   );
 }
-
 function saveFoundValue() {
   localStorage.setItem("found value object", JSON.stringify(foundValueObject));
 }
-
 function getFoundValue() {
   foundValueObject = JSON.parse(
     localStorage.getItem("found value object") || "{}"

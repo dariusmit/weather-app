@@ -1,6 +1,0 @@
-1. Abiejuose sarase ivedus miesta pvz kelme, be ė raidės kodas laiko, kad kelme ir kelmė nėra tas pats tad leidžia duobliuoti įrašus, nors kelmė su ė jau buvo pridėta i sarasa.
-Taip neturėtu buti.
-2. Truksta error message antram sarase ivedus forecast kuri neegzistuoja pirmam sarase.
-Turetu ismesti alert, bet cikla reikia sustabdyti po alert, kad nemetytu kiekviena iteracija. Kaip?
-3. Pagination itemu limitas kai sutampa su masyve esanciu elementu kiekiu, turetu neleisti pereiti i kita puslapi, bet leidzia. Buginasi su local cache del to taip pat.
-4. API key is in .env file which should not be pushed to git, but how to get that variable when deploying project if .env file does not exist in Git repository.
